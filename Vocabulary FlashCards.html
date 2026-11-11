@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Flashcards & Interactive Quizzes</title>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- SheetJS CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #38bdf8;
+            --primary-soft: #e0f2fe;
+            --accent-border: #bae6fd;
+            --card-bg-1: #38bdf8;
+            --card-bg-2: #7dd3fc;
+            --card-bg-3: #bae6fd;
+            --card-bg-4: #e0f2fe;
+            --text-dark: #1e293b;
+        }
+
+        /* Preset Themes */
+        body.theme-sky {
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #38bdf8;
+            --primary-soft: #e0f2fe;
+            --accent-border: #bae6fd;
+            --card-bg-1: #38bdf8;
+            --card-bg-2: #7dd3fc;
+            --card-bg-3: #bae6fd;
+            --card-bg-4: #e0f2fe;
+        }
+
+        body.theme-emerald {
+            --bg-gradient: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%);
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #34d399;
+            --primary-soft: #d1fae5;
+            --accent-border: #a7f3d0;
+            --card-bg-1: #34d399;
+            --card-bg-2: #6ee7b7;
+            --card-bg-3: #a7f3d0;
+            --card-bg-4: #d1fae5;
+        }
+
+        body.theme-purple {
+            --bg-gradient: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 50%, #d8b4fe 100%);
+            --primary: #9333ea;
+            --primary-dark: #7e22ce;
+            --primary-light: #c084fc;
+            --primary-soft: #f3e8ff;
+            --accent-border: #e9d5ff;
+            --card-bg-1: #c084fc;
+            --card-bg-2: #d8b4fe;
+            --card-bg-3: #e9d5ff;
+            --card-bg-4: #f3e8ff;
+        }
+
+        body.theme-sunset {
+            --bg-gradient: linear-gradient(135deg, #ffedd5 0%, #fed7aa 50%, #fdba74 100%);
+            --primary: #ea580c;
+            --primary-dark: #c2410c;
+            --primary-light: #fb923c;
+            --primary-soft: #ffedd5;
+            --accent-border: #fed7aa;
+            --card-bg-1: #fb923c;
+            --card-bg-2: #fdba74;
+            --card-bg-3: #fed7aa;
+            --card-bg-4: #ffedd5;
+        }
+
+        body.theme-rose {
+            --bg-gradient: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fda4af 100%);
+            --primary: #e11d48;
+            --primary-dark: #be123c;
+            --primary-light: #fb7185;
+            --primary-soft: #ffe4e6;
+            --accent-border: #fecdd3;
+            --card-bg-1: #fb7185;
+            --card-bg-2: #fda4af;
+            --card-bg-3: #fecdd3;
+            --card-bg-4: #ffe4e6;
+        }
+
+        body.theme-dark {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            --primary: #38bdf8;
+            --primary-dark: #0284c7;
+            --primary-light: #7dd3fc;
+            --primary-soft: #1e293b;
+            --accent-border: #334155;
+            --card-bg-1: #1e293b;
+            --card-bg-2: #334155;
+            --card-bg-3: #475569;
+            --card-bg-4: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+        body {
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; color: var(--text-dark); transition: background 0.4s ease;
+        }
+        .container {
+            width: 100%; max-width: 1080px;
+            background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px);
+            border-radius: 24px; padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.85);
+        }
+
+        .top-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 12px; margin-bottom: 20px; background: white;
+            padding: 14px 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .btn-group-import { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        .btn-action {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--primary); color: white; padding: 10px 18px; border-radius: 12px;
+            font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .btn-action:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-secondary { background: var(--primary-light); }
+        .btn-secondary:hover { background: var(--primary); }
+        .btn-export { background: #059669; }
+        .btn-export:hover { background: #047857; }
+        .btn-theme-trigger { background: #8b5cf6; }
+        .btn-theme-trigger:hover { background: #7c3aed; }
+
+        .file-upload-wrapper { position: relative; display: inline-block; }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;
+        }
+
+        .nav-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-nav {
+            background: var(--primary-light); color: white; border: none; width: 40px; height: 40px;
+            border-radius: 10px; font-size: 16px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; transition: all 0.2s ease;
+        }
+        .btn-nav:hover:not(:disabled) { background: var(--primary); transform: scale(1.05); }
+        .btn-nav:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .word-select { padding: 8px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155; outline: none; cursor: pointer; max-width: 220px; }
+        .counter { font-weight: 800; color: var(--primary-dark); min-width: 65px; text-align: center; }
+
+        .alert-banner {
+            display: none; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px;
+            font-weight: 700; font-size: 14px; align-items: center; justify-content: space-between;
+        }
+        .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .view-screen { display: none; }
+        .view-screen.active { display: block; }
+
+        /* COVER SCREEN STYLE */
+        .cover-card {
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary-soft) 100%);
+            border-radius: 20px; padding: 48px 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border: 2px solid var(--accent-border); text-align: center; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; min-height: 480px;
+        }
+        .cover-icon { font-size: 72px; color: var(--primary); margin-bottom: 20px; }
+        .cover-title { font-size: 40px; font-weight: 900; color: var(--primary-dark); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .cover-subtitle { font-size: 18px; font-weight: 700; color: #64748b; margin-bottom: 30px; }
+        .btn-start {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white; border: none; padding: 14px 36px; border-radius: 50px;
+            font-size: 18px; font-weight: 800; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 12px; box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3); transition: all 0.2s;
+        }
+        .btn-start:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 28px rgba(2, 132, 199, 0.4); }
+
+        /* FLASHCARD STYLE */
+        .card-wrapper { background: var(--primary-soft); border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid var(--accent-border); position: relative; }
+        
+        .card-global-actions {
+            display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 14px;
+        }
+        .btn-toggle-all {
+            background: white; color: var(--primary); border: 1px solid var(--primary-light); padding: 6px 14px;
+            border-radius: 20px; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-toggle-all:hover { background: var(--primary); color: white; }
+
+        .card-header-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+        
+        .vocab-box {
+            flex: 2; background: linear-gradient(180deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 16px; padding: 14px 20px; display: flex; align-items: center;
+            justify-content: space-between; color: white; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); position: relative;
+        }
+        .vocab-title { font-size: 28px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+        
+        .form-pill {
+            flex: 0.6; background: var(--primary-dark); color: white; border-radius: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 18px; font-weight: 700; padding: 0 14px; text-align: center; position: relative;
+        }
+        .pronun-pill {
+            flex: 1.4; background: var(--primary); color: white; border-radius: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 20px; font-weight: 600; padding: 0 16px; text-align: center; position: relative;
+        }
+
+        .audio-btn {
+            background: rgba(255, 255, 255, 0.25); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-size: 14px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+        .audio-btn:hover { background: rgba(255, 255, 255, 0.45); transform: scale(1.1); }
+
+        /* Toggle Eye Buttons for Fields */
+        .btn-eye-toggle {
+            background: rgba(255, 255, 255, 0.25); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-size: 14px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+        .btn-eye-toggle:hover { background: rgba(255, 255, 255, 0.45); transform: scale(1.1); }
+        .detail-card .btn-eye-toggle {
+            background: rgba(0, 0, 0, 0.08); color: var(--primary-dark);
+        }
+        .detail-card .btn-eye-toggle:hover {
+            background: var(--primary); color: white;
+        }
+
+        /* Masked Hidden Content State */
+        .field-masked {
+            filter: blur(10px); opacity: 0.15; user-select: none; pointer-events: none; transition: all 0.2s ease;
+        }
+
+        .card-body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .illustration-box {
+            background: white; border-radius: 16px; border: 2px solid var(--primary-light); min-height: 380px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 16px; position: relative; overflow: hidden;
+        }
+        .illustration-box img { max-width: 100%; max-height: 300px; object-fit: contain; border-radius: 12px; }
+        .btn-change-image {
+            margin-top: 14px; background: var(--primary); color: white; border: none; padding: 8px 16px;
+            border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); transition: all 0.2s; z-index: 2;
+        }
+        .btn-change-image:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+        .details-stack { display: flex; flex-direction: column; gap: 12px; }
+        .detail-card {
+            border-radius: 16px; padding: 14px 20px; font-size: 16px; line-height: 1.5;
+            display: flex; flex-direction: column; justify-content: center; position: relative;
+        }
+        .detail-card-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+        }
+        .detail-label { font-size: 13px; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
+        .box-english { background: var(--card-bg-1); color: #0f172a; min-height: 95px; }
+        .box-vietnamese { background: var(--card-bg-2); color: #0f172a; min-height: 85px; }
+        .box-example { background: var(--card-bg-3); color: #0f172a; min-height: 95px; }
+        .box-family { background: var(--card-bg-4); color: #0f172a; min-height: 75px; }
+        .detail-value { font-weight: 600; font-size: 17px; }
+
+        /* QUIZ SCREEN STYLE */
+        .quiz-card {
+            background: white; border-radius: 20px; padding: 28px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 2px solid var(--primary-light);
+        }
+        .quiz-header {
+            text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--primary-soft);
+        }
+        .quiz-badge { display: inline-block; background: var(--primary); color: white; padding: 4px 16px; border-radius: 20px; font-weight: 800; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
+        .quiz-title { font-size: 26px; font-weight: 900; color: var(--primary-dark); }
+        .quiz-grid { display: flex; flex-direction: column; gap: 20px; }
+        
+        .quiz-item {
+            background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 18px; transition: all 0.2s;
+        }
+        .quiz-item.correct { border-color: #22c55e; background: #f0fdf4; }
+        .quiz-item.incorrect { border-color: #ef4444; background: #fef2f2; }
+
+        .quiz-question { font-weight: 800; font-size: 16px; color: #0f172a; margin-bottom: 12px; line-height: 1.4; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .opt-btn {
+            background: white; border: 2px solid #cbd5e1; border-radius: 12px; padding: 12px 16px;
+            font-weight: 700; font-size: 15px; color: #334155; cursor: pointer; text-align: left;
+            transition: all 0.2s; display: flex; align-items: center; justify-content: space-between;
+        }
+        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-dark); }
+        .opt-btn.selected-correct { background: #22c55e !important; color: white !important; border-color: #16a34a !important; }
+        .opt-btn.selected-wrong { background: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
+        .opt-btn:disabled { cursor: default; }
+
+        .quiz-feedback { margin-top: 8px; font-weight: 700; font-size: 14px; display: none; }
+        .quiz-feedback.show-correct { display: block; color: #16a34a; }
+        .quiz-feedback.show-wrong { display: block; color: #dc2626; }
+
+        /* SUMMARY SCREEN STYLE */
+        .summary-card {
+            background: white; border-radius: 20px; padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 2px solid var(--accent-border);
+        }
+        .summary-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--primary-soft);
+            flex-wrap: wrap; gap: 12px;
+        }
+        .summary-title { font-size: 24px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .summary-actions { display: flex; gap: 10px; }
+
+        .table-responsive { max-height: 500px; overflow-y: auto; border-radius: 12px; border: 1px solid #cbd5e1; }
+        .summary-table { width: 100%; border-collapse: collapse; background: white; text-align: left; }
+        .summary-table th {
+            background: var(--primary); color: white; padding: 14px 16px; font-weight: 800;
+            font-size: 15px; position: sticky; top: 0; z-index: 10;
+        }
+        .summary-table td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 15px; font-weight: 600; }
+        .summary-table tr:nth-child(even) { background: #f8fafc; }
+        .summary-table tr:hover { background: var(--primary-soft); }
+
+        .btn-reveal {
+            background: var(--primary-light); color: #0f172a; border: none; padding: 6px 14px;
+            border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-reveal:hover { background: var(--primary); color: white; }
+        .revealed-text { display: none; font-weight: 700; color: var(--primary-dark); }
+        .revealed-text.show { display: inline-block; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: white; width: 100%; max-width: 720px; border-radius: 20px; padding: 24px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+        .modal-title { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .btn-close-modal { background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; color: #64748b; }
+        .modal-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab-btn { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 10px; font-weight: 700; color: #64748b; cursor: pointer; text-align: center; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-content { display: none; flex-direction: column; gap: 14px; overflow-y: auto; max-height: 420px; }
+        .tab-content.active { display: flex; }
+        .search-box-row { display: flex; gap: 8px; }
+        .input-search { flex: 1; padding: 10px 14px; border-radius: 10px; border: 2px solid #cbd5e1; font-size: 15px; outline: none; }
+        .btn-search { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .image-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 10px; }
+        .img-item { aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; border: 3px solid transparent; cursor: pointer; background: #f1f5f9; position: relative; }
+        .img-item:hover { border-color: var(--primary); transform: scale(1.03); }
+        .img-item img { width: 100%; height: 100%; object-fit: cover; }
+        .img-item .img-title { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: white; font-size: 11px; padding: 4px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        textarea.paste-area {
+            width: 100%; height: 200px; padding: 12px; border-radius: 12px; border: 2px solid #cbd5e1;
+            font-family: monospace; font-size: 13px; outline: none; resize: vertical;
+        }
+
+        /* Color Theme Options Grid */
+        .theme-preset-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;
+        }
+        .theme-card-option {
+            border: 2px solid #cbd5e1; border-radius: 14px; padding: 14px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; transition: all 0.2s;
+            background: white; text-align: center;
+        }
+        .theme-card-option:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+        .theme-card-option.active { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 2px var(--primary); }
+        .theme-swatch {
+            width: 100%; height: 36px; border-radius: 8px; display: flex; overflow: hidden; border: 1px solid rgba(0,0,0,0.1);
+        }
+        .swatch-bar { flex: 1; height: 100%; }
+        .theme-name { font-weight: 800; font-size: 14px; color: #334155; }
+
+        .custom-color-picker-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 8px;
+        }
+        .custom-color-picker-row label { font-weight: 700; font-size: 14px; color: #334155; }
+        .input-color-picker { width: 44px; height: 34px; border: none; border-radius: 8px; cursor: pointer; background: none; }
+
+        @media (max-width: 768px) {
+            .card-header-row { flex-direction: column; }
+            .card-body-grid { grid-template-columns: 1fr; }
+            .quiz-options { grid-template-columns: 1fr; }
+            .theme-preset-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body class="theme-sky">
+
+    <div class="container">
+        <!-- Alert Notification -->
+        <div id="alertBanner" class="alert-banner">
+            <span id="alertMsg"></span>
+            <i class="fa-solid fa-xmark" onclick="closeAlert()" style="cursor:pointer;"></i>
+        </div>
+
+        <!-- Top Controls -->
+        <div class="top-controls">
+            <div class="btn-group-import">
+                <div class="file-upload-wrapper">
+                    <button class="btn-action">
+                        <i class="fa-solid fa-file-excel"></i> Chọn file Excel (.xlsx)
+                    </button>
+                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onclick="this.value=null;">
+                </div>
+
+                <button class="btn-action btn-secondary" onclick="openPasteModal()">
+                    <i class="fa-solid fa-paste"></i> Dán dữ liệu (Ctrl+V)
+                </button>
+
+                <button class="btn-action btn-theme-trigger" onclick="openThemeModal()" title="Đổi màu giao diện bài học">
+                    <i class="fa-solid fa-palette"></i> Đổi màu giao diện
+                </button>
+
+                <button class="btn-action btn-export" onclick="exportStandaloneHTML()" title="Lưu toàn bộ từ vựng & ảnh thành file HTML riêng">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu thành File HTML riêng
+                </button>
+            </div>
+
+            <div class="nav-controls">
+                <button class="btn-nav" id="prevBtn" onclick="prevCard()"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="counter" id="counterText">Trang 0 / 0</span>
+                <button class="btn-nav" id="nextBtn" onclick="nextCard()"><i class="fa-solid fa-chevron-right"></i></button>
+                <select class="word-select" id="wordSelect" onchange="jumpToCard(this.value)"></select>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: COVER SCREEN -->
+        <div id="coverScreen" class="view-screen active">
+            <div class="cover-card">
+                <i class="fa-solid fa-graduation-cap cover-icon"></i>
+                <h1 class="cover-title" id="coverTitle">TÊN BÀI HỌC</h1>
+                <p class="cover-subtitle" id="coverSubtitle">Bộ thẻ từ vựng tương tác Flashcards & Quizzes</p>
+                <button class="btn-start" onclick="startLearning()">
+                    Bắt đầu học <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: FLASHCARD LEARNING SCREEN -->
+        <div id="cardScreen" class="view-screen">
+            <div class="card-wrapper">
+                <!-- Global Card Toggle Buttons -->
+                <div class="card-global-actions">
+                    <button class="btn-toggle-all" onclick="showAllCardFields()">
+                        <i class="fa-solid fa-eye"></i> Hiện tất cả thông tin
+                    </button>
+                    <button class="btn-toggle-all" onclick="hideAllCardFields()">
+                        <i class="fa-solid fa-eye-slash"></i> Ẩn tất cả thông tin
+                    </button>
+                </div>
+
+                <div class="card-header-row">
+                    <div class="vocab-box">
+                        <span class="vocab-title" id="displayVocab">FLASHCARDS</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button class="btn-eye-toggle" id="btnToggleVocab" onclick="toggleField('displayVocab', this)" title="Ẩn/Hiện từ vựng"><i class="fa-solid fa-eye-slash"></i></button>
+                            <button class="audio-btn" title="Phát âm tiếng Anh" onclick="speakCurrentWord()"><i class="fa-solid fa-volume-high"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-pill">
+                        <span id="displayForm">(form)</span>
+                        <button class="btn-eye-toggle" id="btnToggleForm" onclick="toggleField('displayForm', this)" title="Ẩn/Hiện loại từ"><i class="fa-solid fa-eye-slash"></i></button>
+                    </div>
+                    
+                    <div class="pronun-pill">
+                        <span id="displayPronunciation">(pronunciation)</span>
+                        <button class="btn-eye-toggle" id="btnTogglePronun" onclick="toggleField('displayPronunciation', this)" title="Ẩn/Hiện phiên âm"><i class="fa-solid fa-eye-slash"></i></button>
+                    </div>
+                </div>
+
+                <div class="card-body-grid">
+                    <div class="illustration-box">
+                        <div id="illustrationContainer" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;"></div>
+                        <button class="btn-change-image" onclick="openImageModal()" id="btnImageModal">
+                            <i class="fa-solid fa-camera"></i> Chọn / Đổi ảnh online
+                        </button>
+                    </div>
+
+                    <div class="details-stack">
+                        <div class="detail-card box-english">
+                            <div class="detail-card-header">
+                                <div class="detail-label"><i class="fa-solid fa-book-open"></i> English Definition</div>
+                                <button class="btn-eye-toggle" id="btnToggleEnglish" onclick="toggleField('displayEnglishDef', this)" title="Ẩn/Hiện định nghĩa tiếng Anh"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                            <div class="detail-value" id="displayEnglishDef">(English definition)</div>
+                        </div>
+
+                        <div class="detail-card box-vietnamese">
+                            <div class="detail-card-header">
+                                <div class="detail-label"><i class="fa-solid fa-language"></i> Nghĩa tiếng Việt</div>
+                                <button class="btn-eye-toggle" id="btnToggleVietnamese" onclick="toggleField('displayVietnameseMeaning', this)" title="Ẩn/Hiện nghĩa tiếng Việt"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                            <div class="detail-value" id="displayVietnameseMeaning">(Vietnamese meaning)</div>
+                        </div>
+
+                        <div class="detail-card box-example">
+                            <div class="detail-card-header">
+                                <div class="detail-label"><i class="fa-solid fa-quote-left"></i> Examples </div>
+                                <button class="btn-eye-toggle" id="btnToggleExample" onclick="toggleField('displayExample', this)" title="Ẩn/Hiện câu ví dụ"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                            <div class="detail-value" id="displayExample">(Example)</div>
+                        </div>
+
+                        <div class="detail-card box-family">
+                            <div class="detail-card-header">
+                                <div class="detail-label"><i class="fa-solid fa-sitemap"></i> Family Words</div>
+                                <button class="btn-eye-toggle" id="btnToggleFamily" onclick="toggleField('displayFamilyWords', this)" title="Ẩn/Hiện họ từ"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                            <div class="detail-value" id="displayFamilyWords">(Family Words)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: INTERACTIVE QUIZ SCREEN (EVERY 4 WORDS) -->
+        <div id="quizScreen" class="view-screen">
+            <div class="quiz-card">
+                <div class="quiz-header">
+                    <span class="quiz-badge" id="quizBadge">Kiểm tra ôn tập</span>
+                    <h2 class="quiz-title" id="quizTitle">4 Trắc nghiệm Ôn tập Từ vựng</h2>
+                </div>
+                <div class="quiz-grid" id="quizContainer">
+                    <!-- Dynamic quiz items generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: SUMMARY TABLE SCREEN -->
+        <div id="summaryScreen" class="view-screen">
+            <div class="summary-card">
+                <div class="summary-header">
+                    <div class="summary-title">
+                        <i class="fa-solid fa-list-check"></i> Bảng tổng kết từ vựng
+                    </div>
+                    <div class="summary-actions">
+                        <button class="btn-action btn-secondary" onclick="revealAllSummary()">
+                            <i class="fa-solid fa-eye"></i> Hiện toàn bộ nghĩa
+                        </button>
+                        <button class="btn-action" onclick="hideAllSummary()">
+                            <i class="fa-solid fa-eye-slash"></i> Ẩn toàn bộ nghĩa
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 8%;">STT</th>
+                                <th style="width: 25%;">Từ vựng</th>
+                                <th style="width: 17%;">Part of Speech</th>
+                                <th style="width: 20%;">Pronunciation</th>
+                                <th style="width: 30%;">Nghĩa tiếng Việt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: CHỌN ÁNH ONLINE -->
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-image"></i> Chọn hình ảnh minh họa</div>
+                <button class="btn-close-modal" onclick="closeImageModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="tab-btn active" onclick="switchTab('tabOnline')"><i class="fa-solid fa-globe"></i> Tìm Online</button>
+                <button class="tab-btn" onclick="switchTab('tabUrl')"><i class="fa-solid fa-link"></i> Link Ảnh</button>
+                <button class="tab-btn" onclick="switchTab('tabUpload')"><i class="fa-solid fa-upload"></i> Tải Từ Máy</button>
+            </div>
+
+            <div class="tab-content active" id="tabOnline">
+                <div class="search-box-row">
+                    <input type="text" class="input-search" id="modalSearchInput" placeholder="Nhập từ khóa tiếng Anh...">
+                    <button class="btn-search" onclick="searchOnlineImages()"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+                </div>
+                <a href="#" id="googleSearchLink" target="_blank" style="font-size:14px; color:var(--primary); text-decoration:none; font-weight:700;">
+                    <i class="fa-brands fa-google"></i> Mở Google Images để xem gợi ý ảnh
+                </a>
+                <div id="onlineResultsLoading" style="display:none; text-align:center; padding:15px; color:var(--primary); font-weight:700;">Đang tải ảnh...</div>
+                <div class="image-results-grid" id="imageResultsGrid"></div>
+            </div>
+
+            <div class="tab-content" id="tabUrl">
+                <input type="text" class="input-search" id="directUrlInput" placeholder="https://example.com/image.jpg">
+                <button class="btn-search" onclick="applyDirectUrl()" style="height:42px; margin-top:8px;">Áp dụng URL</button>
+            </div>
+
+            <div class="tab-content" id="tabUpload">
+                <input type="file" id="localImgInput" accept="image/*" style="padding:10px; border:1px solid #cbd5e1; border-radius:10px;">
+                <button class="btn-search" onclick="applyLocalUpload()" style="height:42px; margin-top:8px;">Tải lên thẻ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: DÁN TRỰC TIẾP TỪ EXCEL -->
+    <div class="modal-overlay" id="pasteModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-paste"></i> Dán dữ liệu trực tiếp từ Excel</div>
+                <button class="btn-close-modal" onclick="closePasteModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size:14px; color:#475569; margin-bottom:10px; line-height:1.4;">
+                <b>Hướng dẫn:</b> Trong Excel, nhấn <b>Ctrl + A</b>, nhấn <b>Ctrl + C</b> để copy, sau đó dán (<b>Ctrl + V</b>) vào ô bên dưới rồi bấm <b>"Nạp từ vựng"</b>.
+            </p>
+            <textarea class="paste-area" id="pasteTextArea" placeholder="Dán dữ liệu bảng từ Excel vào đây..."></textarea>
+            <button class="btn-action" onclick="processPastedText()" style="margin-top:14px; height:44px; justify-content:center;">
+                <i class="fa-solid fa-bolt"></i> Nạp từ vựng từ dữ liệu đã dán
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ĐỔI MÀU GIAO DIỆN (THEME COLOR MODAL) -->
+    <div class="modal-overlay" id="themeModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-palette"></i> Tùy chỉnh màu sắc giao diện</div>
+                <button class="btn-close-modal" onclick="closeThemeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size:14px; color:#64748b; margin-bottom:16px;">Chọn một trong các chủ đề màu thiết kế sẵn hoặc tự thiết kế bảng màu tùy chỉnh theo ý thích:</p>
+
+            <div class="theme-preset-grid">
+                <div class="theme-card-option active" id="opt-sky" onclick="setPresetTheme('theme-sky')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#0284c7;"></div>
+                        <div class="swatch-bar" style="background:#38bdf8;"></div>
+                        <div class="swatch-bar" style="background:#bae6fd;"></div>
+                    </div>
+                    <span class="theme-name">Xanh Sa Phao (Sky)</span>
+                </div>
+
+                <div class="theme-card-option" id="opt-emerald" onclick="setPresetTheme('theme-emerald')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#059669;"></div>
+                        <div class="swatch-bar" style="background:#34d399;"></div>
+                        <div class="swatch-bar" style="background:#a7f3d0;"></div>
+                    </div>
+                    <span class="theme-name">Xanh Ngọc (Emerald)</span>
+                </div>
+
+                <div class="theme-card-option" id="opt-purple" onclick="setPresetTheme('theme-purple')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#9333ea;"></div>
+                        <div class="swatch-bar" style="background:#c084fc;"></div>
+                        <div class="swatch-bar" style="background:#e9d5ff;"></div>
+                    </div>
+                    <span class="theme-name">Tím Mộng Mơ (Purple)</span>
+                </div>
+
+                <div class="theme-card-option" id="opt-sunset" onclick="setPresetTheme('theme-sunset')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#ea580c;"></div>
+                        <div class="swatch-bar" style="background:#fb923c;"></div>
+                        <div class="swatch-bar" style="background:#fed7aa;"></div>
+                    </div>
+                    <span class="theme-name">Cam Hoàng Hôn (Sunset)</span>
+                </div>
+
+                <div class="theme-card-option" id="opt-rose" onclick="setPresetTheme('theme-rose')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#e11d48;"></div>
+                        <div class="swatch-bar" style="background:#fb7185;"></div>
+                        <div class="swatch-bar" style="background:#fecdd3;"></div>
+                    </div>
+                    <span class="theme-name">Hồng Ngọt Ngào (Rose)</span>
+                </div>
+
+                <div class="theme-card-option" id="opt-dark" onclick="setPresetTheme('theme-dark')">
+                    <div class="theme-swatch">
+                        <div class="swatch-bar" style="background:#0f172a;"></div>
+                        <div class="swatch-bar" style="background:#1e293b;"></div>
+                        <div class="swatch-bar" style="background:#38bdf8;"></div>
+                    </div>
+                    <span class="theme-name">Huyền Băng (Dark)</span>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid #e2e8f0; padding-top:14px; margin-top:6px;">
+                <h4 style="font-size:15px; font-weight:800; color:#334155; margin-bottom:10px;"><i class="fa-solid fa-sliders"></i> Tùy chỉnh màu tự chọn (Custom Color)</h4>
+                
+                <div class="custom-color-picker-row">
+                    <label for="customPrimaryColor">Màu chủ đạo (Primary Accent):</label>
+                    <input type="color" id="customPrimaryColor" class="input-color-picker" value="#0284c7" onchange="applyCustomTheme()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample Vocabulary Data to ensure application works 100% out of the box!
+        let vocabData = [
+            { no: 1, vocabulary: "academic", pronunciation: "/ˌæk.əˈdem.ɪk/", form: "adj", vietnamese: "thuộc nhà trường, học thuật", english: "connected with education, especially at a college or university", example: "Students need good academic performance for scholarship.", family: "academically (adv), academy (n)", image: "" },
+            { no: 2, vocabulary: "curriculum", pronunciation: "/kəˈrɪk.jə.ləm/", form: "n", vietnamese: "chương trình giảng dạy", english: "the subjects that are included in a course of study", example: "The school curriculum includes English and Mathematics.", family: "curricular (adj)", image: "" },
+            { no: 3, vocabulary: "pedagogy", pronunciation: "/ˈped.ə.ɡɒdʒ.i/", form: "n", vietnamese: "khoa học giáo dục, sư phạm", english: "the study of the methods and activities of teaching", example: "Modern pedagogy focuses on interactive student learning.", family: "pedagogical (adj)", image: "" },
+            { no: 4, vocabulary: "scholarship", pronunciation: "/ˈskɒl.ə.ʃɪp/", form: "n", vietnamese: "học bổng", english: "an amount of money given to a student to pay for education", example: "She won a full scholarship to study abroad.", family: "scholar (n)", image: "" },
+            { no: 5, vocabulary: "literacy", pronunciation: "/ˈlɪt.ər.ə.si/", form: "n", vietnamese: "trình độ biết đọc biết viết", english: "the ability to read and write", example: "The government promotes adult literacy programs.", family: "illiteracy (n), literate (adj)", image: "" }
+        ];
+
+        let slidesList = []; 
+        let currentIndex = 0;
+        let currentUnitName = "TÊN BÀI HỌC";
+        let currentThemeClass = "theme-sky";
+
+        const fieldVisibility = {
+            displayVocab: false,
+            displayForm: false,
+            displayPronunciation: false,
+            displayEnglishDef: false,
+            displayVietnameseMeaning: false,
+            displayExample: false,
+            displayFamilyWords: false
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            buildSlidesSequence();
+            renderView();
+            populateSelectOptions();
+            
+            const fileInput = document.getElementById('excelFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+        });
+
+        function openThemeModal() { document.getElementById('themeModal').classList.add('active'); }
+        function closeThemeModal() { document.getElementById('themeModal').classList.remove('active'); }
+
+        function setPresetTheme(themeClass) {
+            currentThemeClass = themeClass;
+            document.body.className = themeClass;
+            document.documentElement.removeAttribute('style');
+
+            document.querySelectorAll('.theme-card-option').forEach(el => el.classList.remove('active'));
+            const matchedOpt = document.getElementById('opt-' + themeClass.replace('theme-', ''));
+            if (matchedOpt) matchedOpt.classList.add('active');
+
+            showAlert("Đã đổi sang giao diện " + (matchedOpt ? matchedOpt.querySelector('.theme-name').innerText : 'mới') + "!");
+        }
+
+        function applyCustomTheme() {
+            const primaryColor = document.getElementById('customPrimaryColor').value;
+            currentThemeClass = 'custom';
+            document.body.className = '';
+
+            document.documentElement.style.setProperty('--primary', primaryColor);
+            document.documentElement.style.setProperty('--primary-dark', primaryColor);
+            document.documentElement.style.setProperty('--primary-light', primaryColor + 'cc');
+            document.documentElement.style.setProperty('--primary-soft', primaryColor + '22');
+            document.documentElement.style.setProperty('--bg-gradient', `linear-gradient(135deg, ${primaryColor}22 0%, ${primaryColor}44 50%, ${primaryColor}77 100%)`);
+            document.documentElement.style.setProperty('--accent-border', primaryColor + '55');
+            document.documentElement.style.setProperty('--card-bg-1', primaryColor + 'aa');
+            document.documentElement.style.setProperty('--card-bg-2', primaryColor + '77');
+            document.documentElement.style.setProperty('--card-bg-3', primaryColor + '55');
+            document.documentElement.style.setProperty('--card-bg-4', primaryColor + '33');
+
+            document.querySelectorAll('.theme-card-option').forEach(el => el.classList.remove('active'));
+        }
+
+        function showAlert(msg, isError = false) {
+            const banner = document.getElementById('alertBanner');
+            const msgSpan = document.getElementById('alertMsg');
+            if (banner && msgSpan) {
+                msgSpan.innerText = msg;
+                banner.className = 'alert-banner ' + (isError ? 'alert-error' : 'alert-success');
+                banner.style.display = 'flex';
+            }
+        }
+
+        function closeAlert() {
+            const banner = document.getElementById('alertBanner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function updateCoverText() {
+            const el = document.getElementById('coverTitle');
+            if (el) el.innerText = currentUnitName.toUpperCase();
+        }
+
+        function buildSlidesSequence() {
+            slidesList = [];
+            slidesList.push({ type: 'cover' });
+
+            const total = vocabData.length;
+            if (total === 0) {
+                slidesList.push({ type: 'summary' });
+                return;
+            }
+
+            let chunks = [];
+            let i = 0;
+            while (i < total) {
+                let end = i + 4;
+                let remaining = total - end;
+                if (remaining > 0 && remaining < 3) {
+                    end = total;
+                }
+                const group = vocabData.slice(i, Math.min(end, total));
+                chunks.push({
+                    startIdx: i,
+                    endIdx: i + group.length - 1,
+                    group: group
+                });
+                i = end;
+            }
+
+            chunks.forEach(chunk => {
+                chunk.group.forEach(item => {
+                    const idxInVocab = vocabData.indexOf(item);
+                    slidesList.push({ type: 'card', vocabIndex: idxInVocab >= 0 ? idxInVocab : chunk.startIdx });
+                });
+                slidesList.push({
+                    type: 'quiz',
+                    group: chunk.group,
+                    rangeLabel: `Từ ${chunk.startIdx + 1} - ${chunk.endIdx + 1}`
+                });
+            });
+
+            slidesList.push({ type: 'summary' });
+        }
+
+        function toggleField(elemId, btnElem) {
+            const isVisible = !fieldVisibility[elemId];
+            fieldVisibility[elemId] = isVisible;
+            
+            const target = document.getElementById(elemId);
+            if (isVisible) {
+                if (target) target.classList.remove('field-masked');
+                if (btnElem) btnElem.innerHTML = '<i class="fa-solid fa-eye"></i>';
+            } else {
+                if (target) target.classList.add('field-masked');
+                if (btnElem) btnElem.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+            }
+        }
+
+        function showAllCardFields() {
+            for (let key in fieldVisibility) fieldVisibility[key] = true;
+            applyFieldVisibilityUI();
+        }
+
+        function hideAllCardFields() {
+            for (let key in fieldVisibility) fieldVisibility[key] = false;
+            applyFieldVisibilityUI();
+        }
+
+        function applyFieldVisibilityUI() {
+            const mapping = [
+                { id: 'displayVocab', btn: 'btnToggleVocab' },
+                { id: 'displayForm', btn: 'btnToggleForm' },
+                { id: 'displayPronunciation', btn: 'btnTogglePronun' },
+                { id: 'displayEnglishDef', btn: 'btnToggleEnglish' },
+                { id: 'displayVietnameseMeaning', btn: 'btnToggleVietnamese' },
+                { id: 'displayExample', btn: 'btnToggleExample' },
+                { id: 'displayFamilyWords', btn: 'btnToggleFamily' }
+            ];
+
+            mapping.forEach(item => {
+                const isVisible = fieldVisibility[item.id];
+                const target = document.getElementById(item.id);
+                const btn = document.getElementById(item.btn);
+
+                if (target && btn) {
+                    if (isVisible) {
+                        target.classList.remove('field-masked');
+                        btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                    } else {
+                        target.classList.add('field-masked');
+                        btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                    }
+                }
+            });
+        }
+
+        function renderView() {
+            if (slidesList.length === 0) buildSlidesSequence();
+            const totalSlides = slidesList.length;
+            const currentSlide = slidesList[currentIndex] || slidesList[0];
+
+            updateCoverText();
+
+            document.getElementById('coverScreen').classList.remove('active');
+            document.getElementById('cardScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('summaryScreen').classList.remove('active');
+
+            if (currentSlide.type === 'cover') {
+                document.getElementById('coverScreen').classList.add('active');
+            } else if (currentSlide.type === 'card') {
+                document.getElementById('cardScreen').classList.add('active');
+                
+                // Mặc định ẨN hết thông tin khi vào slide thẻ từ vựng
+                hideAllCardFields();
+
+                const item = vocabData[currentSlide.vocabIndex];
+
+                document.getElementById('displayVocab').innerText = item.vocabulary || 'N/A';
+                document.getElementById('displayForm').innerText = item.form ? '(' + item.form + ')' : '(form)';
+                document.getElementById('displayPronunciation').innerText = item.pronunciation ? '(' + item.pronunciation + ')' : '(pronunciation)';
+                document.getElementById('displayEnglishDef').innerText = item.english || '(English definition)';
+                document.getElementById('displayVietnameseMeaning').innerText = item.vietnamese || '(Vietnamese meaning)';
+                document.getElementById('displayExample').innerText = item.example || '(Example)';
+                document.getElementById('displayFamilyWords').innerText = item.family || '(Family Words)';
+
+                const imgBox = document.getElementById('illustrationContainer');
+                if (item.image) {
+                    imgBox.innerHTML = '<img src="' + item.image + '" alt="' + item.vocabulary + '">';
+                } else {
+                    imgBox.innerHTML = `
+                        <div style="text-align:center; color:#94a3b8;">
+                            <i class="fa-regular fa-image" style="font-size:64px; color:var(--primary-light); margin-bottom:12px;"></i>
+                            <p style="font-weight:800; color:var(--primary); font-size:22px; text-transform:capitalize;">` + item.vocabulary + `</p>
+                            <p style="font-size:13px; color:#64748b; margin-top:4px;">Bấm nút bên dưới để thêm ảnh minh họa</p>
+                        </div>
+                    `;
+                }
+            } else if (currentSlide.type === 'quiz') {
+                document.getElementById('quizScreen').classList.add('active');
+                renderQuizSection(currentSlide.group, currentSlide.rangeLabel);
+            } else if (currentSlide.type === 'summary') {
+                document.getElementById('summaryScreen').classList.add('active');
+                renderSummaryTable();
+            }
+
+            document.getElementById('counterText').innerText = `Trang ${currentIndex + 1} / ${totalSlides}`;
+            document.getElementById('prevBtn').disabled = (currentIndex === 0);
+            document.getElementById('nextBtn').disabled = (currentIndex === totalSlides - 1);
+            document.getElementById('wordSelect').value = currentIndex;
+        }
+
+        function renderQuizSection(group, rangeLabel) {
+            document.getElementById('quizBadge').innerText = `Ôn tập ${rangeLabel}`;
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+
+            const questions = generateQuizzesForGroup(group);
+
+            questions.forEach((q, qIdx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'quiz-item';
+                itemDiv.id = `quizItem_${qIdx}`;
+
+                let optionsHTML = '';
+                q.options.forEach((opt) => {
+                    const cleanOpt = opt.replace(/'/g, "\'");
+                    const cleanCorr = q.correct.replace(/'/g, "\'");
+                    optionsHTML += `
+                        <button class="opt-btn" onclick="checkQuizAnswer(this, '${cleanOpt}', '${cleanCorr}', ${qIdx})">
+                            <span>${opt}</span>
+                            <i class="fa-regular fa-circle"></i>
+                        </button>
+                    `;
+                });
+
+                itemDiv.innerHTML = `
+                    <div class="quiz-question"><span style="color:var(--primary);">Câu ${qIdx + 1}:</span> ${q.question}</div>
+                    <div class="quiz-options">${optionsHTML}</div>
+                    <div class="quiz-feedback" id="quizFB_${qIdx}"></div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function generateQuizzesForGroup(group) {
+            const allGroupWords = group.map(g => g.vocabulary);
+
+            function getDistractors(correctWord) {
+                let options = [correctWord];
+                let pool = allGroupWords.filter(w => w !== correctWord);
+                pool.sort(() => 0.5 - Math.random());
+                options.push(...pool.slice(0, 3));
+                
+                const backupPool = ["academic", "curriculum", "scholarship", "pedagogy", "literacy", "diploma"];
+                let bIdx = 0;
+                while (options.length < 4 && bIdx < backupPool.length) {
+                    if (!options.includes(backupPool[bIdx])) options.push(backupPool[bIdx]);
+                    bIdx++;
+                }
+                return options.sort(() => 0.5 - Math.random());
+            }
+
+            const questions = [];
+
+            group.forEach((item, idx) => {
+                const targetWord = item.vocabulary;
+                const options = getDistractors(targetWord);
+
+                const qTypeMod = idx % 4;
+                if (qTypeMod === 0) {
+                    let ex = item.example || `The student read the ________ carefully.`;
+                    const regex = new RegExp(targetWord, 'gi');
+                    let maskedEx = ex.replace(regex, '________');
+                    if (maskedEx === ex) maskedEx = `Example: ________ (${item.vietnamese || ''})`;
+
+                    questions.push({
+                        type: 'example',
+                        question: `Điền từ thích hợp vào câu ví dụ:<br><i>"${maskedEx}"</i>`,
+                        options: options,
+                        correct: targetWord
+                    });
+                } else if (qTypeMod === 1) {
+                    const pron = item.pronunciation || '/.../';
+                    questions.push({
+                        type: 'pronunciation',
+                        question: `Phiên âm <b>${pron}</b> tương ứng với từ vựng nào?`,
+                        options: options,
+                        correct: targetWord
+                    });
+                } else if (qTypeMod === 2) {
+                    const def = item.english || item.vietnamese || 'A word studied in this unit';
+                    questions.push({
+                        type: 'definition',
+                        question: `Định nghĩa: <i>"${def}"</i> là của từ nào?`,
+                        options: options,
+                        correct: targetWord
+                    });
+                } else {
+                    const pos = item.form ? `(${item.form})` : '';
+                    const mean = item.vietnamese || '';
+                    questions.push({
+                        type: 'meaning',
+                        question: `Từ vựng nào mang nghĩa <b>${pos} ${mean}</b>?`,
+                        options: options,
+                        correct: targetWord
+                    });
+                }
+            });
+
+            return questions;
+        }
+
+        function checkQuizAnswer(btn, selected, correct, qIdx) {
+            const parentItem = document.getElementById(`quizItem_${qIdx}`);
+            const feedback = document.getElementById(`quizFB_${qIdx}`);
+            const buttons = parentItem.querySelectorAll('.opt-btn');
+
+            buttons.forEach(b => b.disabled = true);
+
+            if (selected.toLowerCase().trim() === correct.toLowerCase().trim()) {
+                btn.classList.add('selected-correct');
+                btn.querySelector('i').className = 'fa-solid fa-circle-check';
+                parentItem.classList.add('correct');
+                feedback.className = 'quiz-feedback show-correct';
+                feedback.innerHTML = '<i class="fa-solid fa-check"></i> Chính xác!';
+            } else {
+                btn.classList.add('selected-wrong');
+                btn.querySelector('i').className = 'fa-solid fa-circle-xmark';
+                parentItem.classList.add('incorrect');
+                
+                buttons.forEach(b => {
+                    if (b.innerText.trim().toLowerCase() === correct.toLowerCase().trim()) {
+                        b.classList.add('selected-correct');
+                    }
+                });
+
+                feedback.className = 'quiz-feedback show-wrong';
+                feedback.innerHTML = `<i class="fa-solid fa-xmark"></i> Chưa đúng! Đáp án đúng là: <b>${correct}</b>`;
+            }
+        }
+
+        function startLearning() {
+            if (vocabData.length > 0) {
+                currentIndex = 1;
+                renderView();
+            } else {
+                alert('Chưa có từ vựng! Vui lòng nạp file Excel hoặc Dán dữ liệu trước.');
+            }
+        }
+
+        function populateSelectOptions() {
+            if (slidesList.length === 0) buildSlidesSequence();
+            const select = document.getElementById('wordSelect');
+            select.innerHTML = '';
+            
+            slidesList.forEach((slide, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+
+                if (slide.type === 'cover') {
+                    opt.textContent = `${index + 1}. 📖 Bìa bài học`;
+                } else if (slide.type === 'card') {
+                    opt.textContent = `${index + 1}. Thẻ ${slide.vocabIndex + 1}`;
+                } else if (slide.type === 'quiz') {
+                    opt.textContent = `${index + 1}. 📝 Ôn tập (${slide.rangeLabel})`;
+                } else if (slide.type === 'summary') {
+                    opt.textContent = `${index + 1}. 📋 Bảng tổng kết`;
+                }
+                select.appendChild(opt);
+            });
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderView();
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < slidesList.length - 1) {
+                currentIndex++;
+                renderView();
+            }
+        }
+
+        function jumpToCard(index) {
+            currentIndex = parseInt(index);
+            renderView();
+        }
+
+        function speakCurrentWord() {
+            const currentSlide = slidesList[currentIndex];
+            if (currentSlide && currentSlide.type === 'card') {
+                const word = vocabData[currentSlide.vocabIndex]?.vocabulary;
+                if (word) {
+                    const utterance = new SpeechSynthesisUtterance(word);
+                    utterance.lang = 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+        }
+
+        function renderSummaryTable() {
+            const tbody = document.getElementById('summaryTableBody');
+            tbody.innerHTML = '';
+            vocabData.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:800; color:var(--primary);">${item.no || idx + 1}</td>
+                    <td style="font-weight:800; text-transform:capitalize;">${item.vocabulary || ''}</td>
+                    <td><span style="background:var(--primary-soft); color:var(--primary-dark); padding:2px 8px; border-radius:6px; font-size:13px;">${item.form || ''}</span></td>
+                    <td style="color:#64748b; font-family:monospace;">${item.pronunciation || ''}</td>
+                    <td>
+                        <button class="btn-reveal" onclick="toggleReveal(this)">
+                            <i class="fa-solid fa-eye"></i> Hiện nghĩa
+                        </button>
+                        <span class="revealed-text">${item.vietnamese || ''}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleReveal(btn) {
+            const textSpan = btn.nextElementSibling;
+            if (textSpan.classList.contains('show')) {
+                textSpan.classList.remove('show');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i> Hiện nghĩa';
+            } else {
+                textSpan.classList.add('show');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Ẩn';
+            }
+        }
+
+        function revealAllSummary() {
+            document.querySelectorAll('#summaryTableBody .revealed-text').forEach(span => span.classList.add('show'));
+            document.querySelectorAll('#summaryTableBody .btn-reveal').forEach(btn => btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Ẩn');
+        }
+
+        function hideAllSummary() {
+            document.querySelectorAll('#summaryTableBody .revealed-text').forEach(span => span.classList.remove('show'));
+            document.querySelectorAll('#summaryTableBody .btn-reveal').forEach(btn => btn.innerHTML = '<i class="fa-solid fa-eye"></i> Hiện nghĩa');
+        }
+
+        function getColValue(row, targetKeys) {
+            const rowKeys = Object.keys(row);
+            for (let target of targetKeys) {
+                const cleanTarget = target.toLowerCase().replace(/[^a-z0-9]/g, '');
+                for (let k of rowKeys) {
+                    const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (cleanK === cleanTarget || cleanK.includes(cleanTarget)) return row[k];
+                }
+            }
+            return '';
+        }
+
+        function exportStandaloneHTML() {
+            if (!vocabData || vocabData.length === 0) {
+                alert('Chưa có từ vựng nào để lưu! Vui lòng nạp từ vựng trước.');
+                return;
+            }
+            const defaultName = currentUnitName || "Unit_Flashcards";
+            const unitNameInput = prompt("Nhập tên bài học / Unit để lưu thành tệp HTML riêng:", defaultName);
+            if (unitNameInput === null) return;
+            const unitName = unitNameInput.trim() || defaultName;
+
+            currentUnitName = unitName;
+            updateCoverText();
+
+            const fullDoc = document.documentElement.outerHTML;
+            const jsonString = JSON.stringify(vocabData, null, 12);
+
+            let updatedHTML = fullDoc.replace(/let vocabData\s*=\s*\[[\s\S]*?\];/, "let vocabData = " + jsonString + ";");
+            updatedHTML = updatedHTML.replace(/let currentUnitName\s*=\s*".*?";/, 'let currentUnitName = "' + unitName.replace(/"/g, '\"') + '";');
+
+            const blob = new Blob(["<!DOCTYPE html>\n" + updatedHTML], { type: 'text/html;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const fileName = unitName.replace(/[^a-zA-Z0-9_\-]/g, '_') + '_Flashcards_Quiz.html';
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+            showAlert("Đã lưu thành công tệp HTML độc lập: " + fileName);
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            currentUnitName = nameWithoutExt.toUpperCase();
+
+            if (typeof XLSX === 'undefined') {
+                showAlert('Thư viện đọc file Excel đang nạp. Bạn có thể dùng nút "Dán dữ liệu (Ctrl+V)" để dùng ngay!', true);
+                openPasteModal();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+                    if (!jsonData || jsonData.length === 0) {
+                        showAlert('File Excel không có dữ liệu!', true);
+                        return;
+                    }
+
+                    vocabData = jsonData.map((row, index) => ({
+                        no: getColValue(row, ['no.', 'no', 'stt']) || (index + 1),
+                        vocabulary: getColValue(row, ['vocabulary', 'từ vựng', 'word']) || '',
+                        pronunciation: getColValue(row, ['pronunciation', 'phát âm']) || '',
+                        form: getColValue(row, ['word formation', 'loại từ', 'form', 'part of speech']) || '',
+                        vietnamese: getColValue(row, ['vietnamese meaning', 'nghĩa tiếng việt', 'nghĩa']) || '',
+                        english: getColValue(row, ['english definition', 'định nghĩa tiếng anh']) || '',
+                        example: getColValue(row, ['examples', 'example', 'ví dụ']) || '',
+                        family: getColValue(row, ['family words', 'họ từ']) || '',
+                        image: getColValue(row, ['image', 'hình ảnh']) || ''
+                    })).filter(item => item.vocabulary);
+
+                    if (vocabData.length === 0) {
+                        showAlert('Không tìm thấy cột từ vựng (Vocabulary) hợp lệ!', true);
+                        return;
+                    }
+
+                    currentIndex = 0;
+                    buildSlidesSequence();
+                    populateSelectOptions();
+                    renderView();
+                    showAlert('Đã nạp thành công ' + vocabData.length + ' từ vựng từ ' + file.name + '!');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Lỗi khi đọc file Excel! Thử dùng nút "Dán dữ liệu (Ctrl+V)".', true);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function openPasteModal() { document.getElementById('pasteModal').classList.add('active'); }
+        function closePasteModal() { document.getElementById('pasteModal').classList.remove('active'); }
+
+        function processPastedText() {
+            const rawText = document.getElementById('pasteTextArea').value.trim();
+            if (!rawText) { alert('Vui lòng dán dữ liệu từ Excel vào khung!'); return; }
+
+            const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+            if (lines.length < 1) { alert('Dữ liệu dán không hợp lệ!'); return; }
+
+            let headers = [];
+            let startRow = 0;
+
+            if (lines[0].toLowerCase().includes('vocabulary') || lines[0].toLowerCase().includes('từ vựng')) {
+                headers = lines[0].split('\t').map(h => h.trim());
+                startRow = 1;
+            }
+
+            const newData = [];
+            for (let i = startRow; i < lines.length; i++) {
+                const cells = lines[i].split('\t');
+                let vocab = '';
+                let pron = '', form = '', viet = '', eng = '', ex = '', fam = '';
+
+                if (headers.length > 0) {
+                    const rowObj = {};
+                    headers.forEach((h, idx) => { rowObj[h] = cells[idx] ? cells[idx].trim() : ''; });
+                    vocab = getColValue(rowObj, ['vocabulary', 'từ vựng', 'word']) || cells[1] || cells[0] || '';
+                    pron = getColValue(rowObj, ['pronunciation', 'phát âm']) || cells[2] || '';
+                    form = getColValue(rowObj, ['word formation', 'loại từ', 'form']) || cells[3] || '';
+                    viet = getColValue(rowObj, ['vietnamese meaning', 'nghĩa tiếng việt']) || cells[4] || '';
+                    eng = getColValue(rowObj, ['english definition', 'định nghĩa tiếng anh']) || cells[5] || '';
+                    ex = getColValue(rowObj, ['examples', 'example', 'ví dụ']) || cells[6] || '';
+                    fam = getColValue(rowObj, ['family words', 'họ từ']) || cells[7] || '';
+                } else {
+                    vocab = cells[1] || cells[0] || '';
+                    pron = cells[2] || '';
+                    form = cells[3] || '';
+                    viet = cells[4] || cells[1] || '';
+                    eng = cells[5] || '';
+                    ex = cells[6] || '';
+                    fam = cells[7] || '';
+                }
+
+                if (vocab) {
+                    newData.push({
+                        no: newData.length + 1,
+                        vocabulary: vocab,
+                        pronunciation: pron,
+                        form: form,
+                        vietnamese: viet,
+                        english: eng,
+                        example: ex,
+                        family: fam,
+                        image: ''
+                    });
+                }
+            }
+
+            if (newData.length === 0) { alert('Không trích xuất được từ vựng nào!'); return; }
+
+            vocabData = newData;
+            currentIndex = 0;
+            currentUnitName = "DỮ LIỆU ĐÃ DÁN";
+            buildSlidesSequence();
+            populateSelectOptions();
+            renderView();
+            closePasteModal();
+            showAlert('Đã nạp thành công ' + vocabData.length + ' từ vựng!');
+        }
+
+        function openImageModal() {
+            const currentSlide = slidesList[currentIndex];
+            if (!currentSlide || currentSlide.type !== 'card') {
+                alert('Vui lòng chọn một thẻ từ vựng cụ thể trước khi thêm/đổi ảnh!');
+                return;
+            }
+            const currentWord = vocabData[currentSlide.vocabIndex]?.vocabulary || '';
+            document.getElementById('modalSearchInput').value = currentWord;
+            document.getElementById('googleSearchLink').href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(currentWord);
+            document.getElementById('imageModal').classList.add('active');
+            searchOnlineImages();
+        }
+
+        function closeImageModal() { document.getElementById('imageModal').classList.remove('active'); }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('#imageModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#imageModal .tab-content').forEach(content => content.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        async function searchOnlineImages() {
+            const query = document.getElementById('modalSearchInput').value.trim();
+            if (!query) return;
+
+            const resultsGrid = document.getElementById('imageResultsGrid');
+            const loading = document.getElementById('onlineResultsLoading');
+            resultsGrid.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                const wikiUrl = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(query) + '&gsrlimit=12&prop=pageimages|imageinfo&iiprop=url&piprop=thumbnail&pithumbsize=600&format=json&origin=*';
+                const resp = await fetch(wikiUrl);
+                const data = await resp.json();
+                loading.style.display = 'none';
+
+                const pages = data?.query?.pages || {};
+                const imageItems = [];
+                for (let pid in pages) {
+                    if (pages[pid].thumbnail?.source) {
+                        imageItems.push({ url: pages[pid].thumbnail.source, title: pages[pid].title });
+                    }
+                }
+
+                if (imageItems.length < 3) {
+                    imageItems.push(
+                        { url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop', title: "Education" },
+                        { url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&auto=format&fit=crop', title: "Books" },
+                        { url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop', title: "Students" }
+                    );
+                }
+
+                imageItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'img-item';
+                    div.innerHTML = '<img src="' + item.url + '" alt="' + item.title + '"><div class="img-title">' + item.title + '</div>';
+                    div.onclick = () => selectImage(item.url);
+                    resultsGrid.appendChild(div);
+                });
+            } catch (err) {
+                loading.style.display = 'none';
+                resultsGrid.innerHTML = '<p style="color:#ef4444; font-weight:700;">Dán link ảnh hoặc tải ảnh từ máy nếu tìm online trễ.</p>';
+            }
+        }
+
+        function selectImage(url) {
+            const currentSlide = slidesList[currentIndex];
+            if (currentSlide && currentSlide.type === 'card') {
+                vocabData[currentSlide.vocabIndex].image = url;
+                renderView();
+            }
+            closeImageModal();
+        }
+
+        function applyDirectUrl() {
+            const url = document.getElementById('directUrlInput').value.trim();
+            if (url) { selectImage(url); document.getElementById('directUrlInput').value = ''; }
+        }
+
+        function applyLocalUpload() {
+            const fileInput = document.getElementById('localImgInput');
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { selectImage(e.target.result); };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
